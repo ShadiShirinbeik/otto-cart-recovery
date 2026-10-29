@@ -1,0 +1,11 @@
+data/
+*.jsonl
+*.parquet
+.env
+.venv/
+__pycache__/
+.ipynb_checkpoints/
+dbt/target/
+dbt/logs/
+profiles.yml
+.DS_Store
