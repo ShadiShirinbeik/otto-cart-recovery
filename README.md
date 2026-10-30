@@ -40,24 +40,28 @@ A shop's revenue roughly equals *visitors × conversion rate × basket value*. G
 | Type | KPI | Definition |
 |---|---|---|
 | Main | Cart abandonment rate | Share of sessions with at least one cart add and no order |
+| Main | Order conversion rate | Share of all sessions that place at least one order |
 | Outcome | Recoverable orders | Extra orders if X% of abandoned carts were recovered |
 | Supporting | Click-to-cart rate | Share of sessions with a click that also add to cart |
 | Supporting | Cart-to-order rate | Share of sessions with a cart add that also order |
 | Supporting | Time to purchase | Time from first cart add to order |
 | Supporting | Active days per session | Number of distinct days with activity |
 | Supporting | Conversion rate by weekday and hour | Share of sessions that order, by time |
+| Supporting | Items per order | Average number of products in an ordering session (basket size) |
+| Supporting | Product cart-to-order rate | For each product, share of cart adds that end in an order |
+| Supporting | Conversion rate by segment | Order rate for each user group found with k-means |
 
 **Success** means a measured baseline for every KPI, a clear estimate of recoverable orders, and a reminder plan (who, when, test size) backed by statistical tests.
 
 ## 3. Business questions
 
-| # | Question | Method |
-|---|---|---|
-| Q1 | How big is the problem? | Funnel, abandonment rate with confidence interval, recoverable-orders scenarios |
-| Q2 | Who should we target? | Linear regression on user behaviour; k-means segments |
-| Q3 | When should we contact them? | Time-to-purchase distribution; weekday and hour comparison (two-proportion z-test) |
-| Q4 | How do we test it? | Sample size for an A/B test; samples vs. population (confidence intervals, bootstrap) |
-| Bonus | Which products are abandoned most? | Products with many cart adds but few orders |
+| # | Question | KPI that answers it | Method |
+|---|---|---|---|
+| Q1 | How many customers do we lose, and how many orders could we win back? | Cart abandonment rate, order conversion rate, recoverable orders | Funnel, confidence interval, recovery scenarios (e.g. 5%, 10%, 20%) |
+| Q2 | Who should we contact? | Active days per session, conversion rate by segment | Group comparisons, k-means segments |
+| Q3 | When should we contact them? | Time to purchase, conversion rate by weekday and hour | Time-to-purchase distribution, two-proportion z-test |
+| Q4 | How do we test if it works? | Required sample size per group | Sample size calculation, samples vs. full data |
+| Bonus | Which products are abandoned most? | Product cart-to-order rate | Products with many cart adds but few orders |
 
 ## 4. Data source
 
@@ -76,19 +80,27 @@ A shop's revenue roughly equals *visitors × conversion rate × basket value*. G
 
 **Ethics.** All user and product IDs are anonymised. The dataset contains no personal data.
 
+### Sample
+
+- **What:** 1,000,000 sessions picked at random from the 12.9M (about 7.8%), with all events of each session, so a user's cart and order stay together. Fixed seed, so the same sample comes out every time.
+- **Size:** 16,857,546 events after cleaning (0.16% duplicates removed).
+- **Columns:** `session`, `aid`, `ts`, `type` (the Parquet file also has `event_time` in Berlin time).
+- **Difference from the full data:** a flat table (one row per event) instead of nested JSON, 253 MB instead of 11 GB, no duplicates. The share of clicks, carts and orders is almost the same as in the full data.
+- **Used for:** PostgreSQL, dbt and almost all analysis and the dashboard. The full data is used only for the overall totals and to check the sample (Q4).
+
 ## 5. Data pipeline and lineage
 
 ```
-Kaggle API → raw JSONL → flattened events (Parquet) → PostgreSQL → dbt models → Python analysis → Tableau dashboard
+Kaggle API → raw JSONL → 1M-session sample → clean events → PostgreSQL → dbt models → Python analysis → Tableau dashboard
 ```
 
 | Stage | Tool | Input | Output | Location |
 |---|---|---|---|---|
 | Collect | Kaggle API | Kaggle dataset | `otto-recsys-train.jsonl` | `data/raw/` |
-| Clean | Python / pandas | Raw JSONL | Flat event table, Berlin time | `data/processed/` |
-| Sample | Python | Flat events | ~1M-session sample (Parquet) | `data/processed/` |
-| Store | PostgreSQL | Sample | `raw_events` table | Local database |
-| Transform | dbt | `raw_events` | Staging, session-level and daily KPI models | `dbt/` |
+| Sample | Python (`src/make_sample.py`) | Raw JSONL | 1M random sessions as a flat table (`events_sample_raw.parquet`) | `data/processed/` |
+| Clean | Python / pandas (`02_clean_sample.ipynb`) | Sample | Duplicates removed (`events_clean.parquet`, `events_clean.csv`) | `data/processed/` |
+| Store | PostgreSQL | `events_clean.csv` | `raw.events` table | Local database |
+| Transform | dbt | `raw.events` | Staging, session-level and daily KPI models | `dbt/` |
 | Analyze | Python (statsmodels, scikit-learn) | dbt models | Tests, models, charts | `notebooks/` |
 | Visualize | Tableau, Seaborn | Analysis results | Dashboard and charts | `dashboard/` |
 
