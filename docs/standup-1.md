@@ -68,7 +68,7 @@ The data folder is in `.gitignore`, so the 11 GB file is not uploaded; the READM
 The README already covers the problem, KPIs, data source, pipeline and how to reproduce.
 
 **Pipeline draft**
-Kaggle → raw JSON file → Python cleaning → 1M-session sample → PostgreSQL → dbt models → Python analysis → Seaborn charts and Tableau dashboard → README and presentation.
+Kaggle API → raw JSONL → 1M-session sample → clean events → PostgreSQL → dbt models → Python analysis → Tableau dashboard
 
 **Notebook 01 – Data overview**
 Looks at a few sessions to understand the JSON structure (one line = one session with a list of events).
@@ -79,11 +79,20 @@ Result: 12,899,779 sessions and 216.7M events, matching OTTO's official numbers.
 Picks 1M sessions at random (simple random sampling, fixed seed so the same sample comes out every time).
 Whole sessions are kept with all their events, so a user's cart and order always stay together.
 The nested JSON is turned into a flat table: session, product, timestamp, event type.
+- **Size:** 16,857,546 events after cleaning (0.16% duplicates removed).
 
 **Notebook 02 – Cleaning**
 Converts timestamps to Berlin time and checks for missing values (none) and the date range.
 Compares the sample with the full data: the share of clicks, carts and orders is almost identical, so the sample is representative.
 Removes 0.16% exact duplicate rows and saves the clean table (16.9M events) for PostgreSQL.
+
+
+## Stakeholders
+
+- Primary users: the marketing team, who send the cart-reminder emails and use the plan (who to contact and when).
+- Decision-makers: the Head of E-commerce or Product, who decides whether to invest in cart recovery, based on the recoverable orders.
+- Partners: the data and engineering team, who build the reminder logic.
+
 
 ## Next steps
 
