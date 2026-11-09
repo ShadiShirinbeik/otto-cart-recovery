@@ -99,8 +99,8 @@ Kaggle API → raw JSONL → 1M-session sample → clean events → PostgreSQL �
 | Collect | Kaggle API | Kaggle dataset | `otto-recsys-train.jsonl` | `data/raw/` |
 | Sample | Python (`src/make_sample.py`) | Raw JSONL | 1M random sessions as a flat table (`events_sample_raw.parquet`) | `data/processed/` |
 | Clean | Python / pandas (`02_clean_sample.ipynb`) | Sample | Duplicates removed (`events_clean.parquet`, `events_clean.csv`) | `data/processed/` |
-| Store | PostgreSQL | `events_clean.csv` | `raw.events` table | Local database |
-| Transform | dbt | `raw.events` | Staging, session-level and daily KPI models | `dbt/` |
+| Store | PostgreSQL | `events_clean.csv` | `otto.raw_events` table | Local database |
+| Transform | dbt | `otto.raw_events` | Staging, session-level and daily KPI models | `dbt/` |
 | Analyze | Python (statsmodels, scikit-learn) | dbt models | Tests, models, charts | `notebooks/` |
 | Visualize | Tableau, Seaborn | Analysis results | Dashboard and charts | `dashboard/` |
 

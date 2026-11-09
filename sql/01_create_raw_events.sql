@@ -1,6 +1,6 @@
-CREATE SCHEMA IF NOT EXISTS raw;
+CREATE SCHEMA IF NOT EXISTS otto;
 
-CREATE TABLE raw.events (
+CREATE TABLE otto.raw_events (
     session  INTEGER,
     aid      INTEGER,
     ts       BIGINT,

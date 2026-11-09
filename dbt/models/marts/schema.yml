@@ -1,0 +1,22 @@
+version: 2
+
+models:
+  - name: mart_sessions
+    description: One row per session with behaviour, funnel and timing features
+    columns:
+      - name: session_id
+        tests: [unique, not_null]
+      - name: is_abandoned
+        description: Added something to the cart but never ordered
+      - name: hours_cart_to_order
+        description: Hours from the first cart add to the first order
+      - name: starts_with_cart_or_order
+        description: First event is not a click (product was clicked before August 1st)
+      - name: cart_in_last_days
+        description: First cart add on Aug 27 or 28, the order may fall after the data period
+
+  - name: mart_products
+    description: One row per product with clicks, cart adds, orders and cart-to-order rate
+    columns:
+      - name: product_id
+        tests: [unique, not_null]

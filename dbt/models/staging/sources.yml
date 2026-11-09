@@ -1,0 +1,8 @@
+version: 2
+
+sources:
+  - name: otto
+    schema: otto
+    tables:
+      - name: raw_events
+        description: Clean 1M-session sample loaded from events_clean.csv
