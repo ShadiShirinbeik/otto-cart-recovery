@@ -38,6 +38,17 @@ select
 
     -- special cases, left out of some analyses
     first_click_time is null or first_click_time > first_event_time as starts_with_cart_or_order,
-    first_cart_time >= '2022-08-27' as cart_in_last_days
+    first_cart_time >= '2022-08-27' as cart_in_last_days,
+
+    -- buyer type, based on cart and order behaviour
+    case
+        when n_carts = 0 and n_orders = 0 then 'browser'
+        when n_orders = 0 and first_cart_time >= '2022-08-27' then 'late_cart'
+        when n_orders = 0 then 'abandoner'
+        when n_carts = 0 or first_order_time < first_cart_time then 'other'
+        when first_order_time - first_cart_time < interval '1 hour' then 'quick_buyer'
+        when first_order_time - first_cart_time < interval '24 hours' then 'same_day_buyer'
+        else 'slow_buyer'
+    end as buyer_type
 
 from sessions
