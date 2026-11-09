@@ -16,8 +16,7 @@ Cart abandonment analysis on real OTTO e-commerce data (12.9M sessions): funnel 
 7. [How to reproduce](#7-how-to-reproduce)
 8. [Findings](#8-findings)
 9. [Limitations](#9-limitations)
-10. [Project timeline](#10-project-timeline)
-11. [Acknowledgements](#11-acknowledgements)
+10. [Acknowledgements](#10-acknowledgements)
 
 ---
 
@@ -201,24 +200,6 @@ otto-cart-recovery/
 
 ## 8. Findings
 
-*First results from the 1M-user sample. More results will be added.*
-
-- **Most users only browse:** 70.2% never add anything to the cart.
-- **More than half of carts are abandoned:** about 57% of users with a cart never ordered (159,946 of 280,924). The Baymard average is about 70%, but it measures single visits, not 4 weeks of activity.
-- **Most buyers decide fast:** 67.6% order within 1 hour of the cart add, 13.4% on the same day, and 19.0% come back after more than a day.
-- **Users do come back:** almost 1 in 5 buyers returns after more than a day, so a cart reminder makes sense. Since most orders happen in the first hour, a reminder should come after that hour.
-- **Opportunity:** if 10% of abandoners came back, there would be about 16,000 extra buyers in the sample, about 13% more buyers, with no extra ad spend.
-
-| Buyer type | Users | Share |
-|---|---|---|
-| browser | 702,220 | 70.2% |
-| abandoner | 159,946 | 16.0% |
-| quick_buyer | 81,723 | 8.2% |
-| slow_buyer | 22,992 | 2.3% |
-| same_day_buyer | 16,263 | 1.6% |
-| late_cart | 11,668 | 1.2% |
-| other | 5,188 | 0.5% |
-
 ## 9. Limitations
 
 - No prices: results are measured in orders and buyers, not euros.
@@ -227,13 +208,6 @@ otto-cart-recovery/
 - A real person using two devices may appear as two sessions.
 - Cart abandonment is measured per user over 4 weeks, so it is not directly comparable with per-visit benchmarks.
 
-## 10. Project timeline
-
-- [x] **Week 1:** Project definition, data overview, sample and cleaning
-- [x] **Week 2:** PostgreSQL, dbt models (staging, prep, marts), first findings
-- [ ] **Week 3:** Q1–Q4 analysis and charts
-- [ ] **Week 4:** Tableau dashboard, cart recovery plan, final presentation
-
-## 11. Acknowledgements
+## 10. Acknowledgements
 
 Data: OTTO Recommender Systems Dataset by OTTO (GmbH & Co KG), licensed under CC BY 4.0. https://github.com/otto-de/recsys-dataset
