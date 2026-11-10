@@ -22,11 +22,9 @@ Cart abandonment analysis on real OTTO e-commerce data (12.9M sessions): funnel 
 
 ## 1. Business problem
 
-**Background.** Online shops lose most of their potential buyers at the cart stage. On average, about 70% of online shopping carts are abandoned ([Baymard Institute](https://baymard.com/research/cart-abandonment-rate)). These users have already shown purchase intent, so every abandoned cart is a lost order.
+**Background.** On average, about 70% of online shopping carts are abandoned ([Baymard Institute](https://baymard.com/research/cart-abandonment-rate)). These users already wanted to buy, so every abandoned cart is a lost order.
 
-**Goal.** Help an online shop get more orders from the visitors it already has, by recovering abandoned carts.
-
-A shop's revenue roughly equals *visitors × conversion rate × basket value*. Getting more visitors costs money (advertising). This project focuses on conversion: turning more existing visitors into buyers.
+**Goal.** Help an online shop get more orders from the visitors it already has, by recovering abandoned carts, instead of spending more on ads to get new visitors.
 
 **Impact.** The result is a data-backed cart recovery plan that answers:
 - How many orders are being lost?
@@ -42,12 +40,9 @@ A shop's revenue roughly equals *visitors × conversion rate × basket value*. G
 | Main | Order conversion rate | Share of all users that place at least one order |
 | Outcome | Recoverable orders | Extra buyers if X% of abandoned carts were recovered |
 | Supporting | Click-to-cart rate | Share of users who add something to the cart |
-| Supporting | Cart-to-order rate | Share of users with a cart add who also order |
 | Supporting | Time to purchase | Time from first cart add to first order |
-| Supporting | Active days per user | Number of different days with activity |
+| Supporting | Cart adds per user | How many times a user added something to the cart |
 | Supporting | Conversion rate by weekday and hour | Share of orders by time |
-| Supporting | Items per order | Average number of products in an ordering session (basket size) |
-| Supporting | Product cart-to-order rate | For each product, share of cart adds that end in an order |
 | Supporting | Buyer type share | Share of users in each buyer type (browser, abandoner, quick / same-day / slow buyer) |
 
 **Success** means a measured baseline for every KPI, a clear estimate of recoverable orders, and a reminder plan (who, when, test size) backed by statistical tests.
@@ -57,37 +52,32 @@ A shop's revenue roughly equals *visitors × conversion rate × basket value*. G
 | # | Question | KPI that answers it | Method |
 |---|---|---|---|
 | Q1 | How many customers do we lose, and how many orders could we win back? | Cart abandonment rate, order conversion rate, recoverable orders | Funnel, confidence interval, recovery scenarios (e.g. 5%, 10%, 20%) |
-| Q2 | Who should we contact? | Buyer type share, active days per user | Rule-based buyer types, behaviour comparison |
+| Q2 | Who should we contact? | Buyer type share, cart adds per user | Rule-based buyer types, behaviour comparison |
 | Q3 | When should we contact them? | Time to purchase, conversion rate by weekday and hour | Time-to-purchase distribution, two-proportion z-test |
 | Q4 | How do we test if it works? | Required sample size per group | Sample size calculation, samples vs. full data |
-| Bonus | Which products are abandoned most? | Product cart-to-order rate | Products with many cart adds but few orders |
 
 ## 4. Data source
 
 | Item | Details |
 |---|---|
-| Dataset | OTTO Recommender Systems Dataset |
-| Publisher | OTTO (German online retailer) |
+| Dataset | OTTO Recommender Systems Dataset, published by OTTO (German online retailer) |
 | Official repository | https://github.com/otto-de/recsys-dataset |
 | Download | Kaggle: https://www.kaggle.com/datasets/otto/recsys-dataset |
 | Licence | CC BY 4.0 (free to use with attribution) |
 | Type | Real event data (not synthetic), 1–28 August 2022 |
 | Size | 12,899,779 sessions, 216,716,096 events (clicks, cart adds, orders) |
-| File used | `otto-recsys-train.jsonl` (~11 GB). The test file covers a different week and is not used. |
+| File used | `otto-recsys-train.jsonl` (~11 GB) |
 
 **Columns:** `session` (anonymised user ID), `aid` (anonymised product ID), `ts` (Unix timestamp in milliseconds), `type` (`clicks`, `carts`, `orders`).
 
-**Sessions.** A session holds all activity of one anonymous user in the 4 weeks, so it can last a few minutes or several weeks. In this project, one session = one user.
-
-**Ethics.** All user and product IDs are anonymised. The dataset contains no personal data.
+**Sessions.** A session holds all activity of one anonymous user in the 4 weeks. In this project, one session = one user. All IDs are anonymised; there is no personal data.
 
 ### Sample
 
-- **What:** 1,000,000 sessions picked at random from the 12.9M (about 7.8%). All events of each chosen session are kept, so a user's cart and order stay together. A fixed seed creates the same sample every time.
-- **Size:** 16,857,546 events after cleaning (0.16% duplicates removed).
-- **Columns:** `session`, `aid`, `ts`, `type`.
-- **Difference from the full data:** a flat table (one row per event) instead of nested JSON, 253 MB instead of 11 GB, no duplicates. The share of clicks, carts and orders is almost the same as in the full data.
-- **Used for:** PostgreSQL, dbt and almost all analysis and the dashboard. The full data is used only for the overall totals and to check the sample (Q4).
+- **What:** 1,000,000 random sessions (about 7.8%), with all events of each session, so a user's cart and order stay together. Fixed seed, so the sample can be repeated.
+- **Size:** 16,857,546 events after cleaning, as a flat table (one row per event).
+- **Check:** the share of clicks, carts and orders and the spread over all 28 days are almost the same as in the full data.
+- **Used for:** PostgreSQL, dbt, the analysis and the dashboard. The full data is used for the overall totals and to check the sample.
 
 ### Data rules
 
@@ -121,8 +111,8 @@ Kaggle API → raw JSONL → 1M-session sample → clean events → PostgreSQL �
 | Sample | Python (`src/make_sample.py`) | Raw JSONL | 1M random sessions as a flat table (`events_sample_raw.parquet`) | `data/processed/` |
 | Clean | Python (`02_clean_sample.ipynb`) | Sample | Duplicates removed (`events_clean.parquet`, `events_clean.csv`) | `data/processed/` |
 | Store | PostgreSQL | `events_clean.csv` | `otto.raw_events` table | PostgreSQL, schema `otto` |
-| Transform | dbt | `otto.raw_events` | `stg_events` → `prep_sessions` → `mart_sessions`, `mart_products` | `dbt/` |
-| Analyze | Python (pandas, statsmodels) | dbt marts | Tests and charts | `notebooks/` |
+| Transform | dbt | `otto.raw_events` | `stg_events` → `prep_sessions` → `mart_sessions` | `dbt/` |
+| Analyze | Python (`03_cart_abandonment.ipynb`, `04_who_to_contact.ipynb`) | dbt marts | Tests and charts | `notebooks/`, `docs/figures/` |
 | Visualize | Tableau, Seaborn, Plotly | dbt marts | Dashboard and charts | `dashboard/` |
 
 ### dbt models
@@ -132,9 +122,8 @@ Kaggle API → raw JSONL → 1M-session sample → clean events → PostgreSQL �
 | Staging | `stg_events` | event | Renames columns, adds Berlin time. The raw table stays unchanged. |
 | Prep | `prep_sessions` | user | Counts clicks, cart adds, orders, products and active days; keeps the first click, cart and order time |
 | Mart | `mart_sessions` | user | Final features: cart abandonment, hours from cart to order, order weekday and hour, buyer type, data-rule flags |
-| Mart | `mart_products` | product | Clicks, cart adds, orders and cart-to-order rate |
 
-dbt tests check that every user and every product appears only once in the marts.
+dbt tests check that every user appears only once in the mart.
 
 ## 6. Repository structure
 
@@ -164,7 +153,7 @@ otto-cart-recovery/
    ```
 2. Install the Python packages:
    ```bash
-   pip install pandas pyarrow seaborn plotly statsmodels jupyter kaggle dbt-postgres
+   pip install pandas pyarrow seaborn plotly statsmodels jupyter kaggle dbt-postgres sqlalchemy psycopg2-binary python-dotenv
    ```
 3. Download the data with the Kaggle API (requires `kaggle.json` from your Kaggle account settings):
    ```bash
@@ -196,6 +185,14 @@ otto-cart-recovery/
    cd dbt
    dbt run
    dbt test
+   ```
+9. Create a `.env` file in the project folder with the same connection (not committed), then run notebooks 03 and 04. They download the dbt tables once and save the charts in `docs/figures/`:
+   ```
+   POSTGRES_USER=YOUR_USER
+   POSTGRES_PASS=YOUR_PASSWORD
+   POSTGRES_HOST=YOUR_HOST
+   POSTGRES_PORT=5432
+   POSTGRES_DB=YOUR_DATABASE
    ```
 
 ## 8. Findings

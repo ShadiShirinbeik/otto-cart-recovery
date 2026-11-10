@@ -19,9 +19,3 @@ models:
           browser (no cart), abandoner (cart but no order), quick_buyer (order within 1 hour of the cart),
           same_day_buyer (1-24 hours), slow_buyer (more than 24 hours), late_cart (cart on Aug 27-28, no order yet),
           other (order without a cart in the data period)
-
-  - name: mart_products
-    description: One row per product with clicks, cart adds, orders and cart-to-order rate
-    columns:
-      - name: product_id
-        tests: [unique, not_null]
