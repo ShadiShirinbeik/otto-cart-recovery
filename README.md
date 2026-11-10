@@ -1,6 +1,6 @@
 # From Click to Order: Recovering Abandoned Carts at OTTO
 
-Cart abandonment analysis on real OTTO e-commerce data (12.9M sessions): funnel KPIs, buyer types, purchase timing and A/B test sizing to build a cart recovery plan.
+Cart abandonment analysis on real OTTO e-commerce data (12.9M sessions): funnel KPIs, buyer types and purchase timing to build a cart recovery plan.
 
 **Tools:** Python (pandas, statsmodels, Seaborn, Plotly) · SQL · PostgreSQL · dbt · Tableau
 
@@ -30,7 +30,6 @@ Cart abandonment analysis on real OTTO e-commerce data (12.9M sessions): funnel 
 - How many orders are being lost?
 - Which users should be targeted?
 - When should they be contacted?
-- How can the effect be proven with an A/B test?
 
 ## 2. KPIs
 
@@ -54,7 +53,6 @@ Cart abandonment analysis on real OTTO e-commerce data (12.9M sessions): funnel 
 | Q1 | How many customers do we lose, and how many orders could we win back? | Cart abandonment rate, order conversion rate, recoverable orders | Funnel, confidence interval, recovery scenarios (e.g. 5%, 10%, 20%) |
 | Q2 | Who should we contact? | Buyer type share, cart adds per user | Rule-based buyer types, behaviour comparison |
 | Q3 | When should we contact them? | Time to purchase, conversion rate by weekday and hour | Time-to-purchase distribution, two-proportion z-test |
-| Q4 | How do we test if it works? | Required sample size per group | Sample size calculation, samples vs. full data |
 
 ## 4. Data source
 
@@ -69,6 +67,8 @@ Cart abandonment analysis on real OTTO e-commerce data (12.9M sessions): funnel 
 | File used | `otto-recsys-train.jsonl` (~11 GB) |
 
 **Columns:** `session` (anonymised user ID), `aid` (anonymised product ID), `ts` (Unix timestamp in milliseconds), `type` (`clicks`, `carts`, `orders`).
+
+**Data dictionary:** every table and column is explained in [docs/data_dictionary.md](docs/data_dictionary.md).
 
 **Sessions.** A session holds all activity of one anonymous user in the 4 weeks. In this project, one session = one user. All IDs are anonymised; there is no personal data.
 
@@ -112,6 +112,7 @@ Kaggle API → raw JSONL → 1M-session sample → clean events → PostgreSQL �
 | Clean | Python (`02_clean_sample.ipynb`) | Sample | Duplicates removed (`events_clean.parquet`, `events_clean.csv`) | `data/processed/` |
 | Store | PostgreSQL | `events_clean.csv` | `otto.raw_events` table | PostgreSQL, schema `otto` |
 | Transform | dbt | `otto.raw_events` | `stg_events` → `prep_sessions` → `mart_sessions` | `dbt/` |
+| EDA | Python (`02b_eda.ipynb`) | `mart_sessions` | Missing values, summary statistics, group counts | `notebooks/` |
 | Analyze | Python (`03_cart_abandonment.ipynb`, `04_who_to_contact.ipynb`) | dbt marts | Tests and charts | `notebooks/`, `docs/figures/` |
 | Visualize | Tableau, Seaborn, Plotly | dbt marts | Dashboard and charts | `dashboard/` |
 
@@ -186,7 +187,7 @@ otto-cart-recovery/
    dbt run
    dbt test
    ```
-9. Create a `.env` file in the project folder with the same connection (not committed), then run notebooks 03 and 04. They download the dbt tables once and save the charts in `docs/figures/`:
+9. Create a `.env` file in the project folder with the same connection (not committed), then run notebook 02b (EDA) and notebooks 03–05. They download the dbt tables once and save the charts in `docs/figures/`:
    ```
    POSTGRES_USER=YOUR_USER
    POSTGRES_PASS=YOUR_PASSWORD
