@@ -2,7 +2,7 @@
 
 Cart abandonment analysis on real OTTO e-commerce data (12.9M sessions): funnel KPIs, buyer types and purchase timing to build a cart recovery plan.
 
-**Tools:** Python (pandas, statsmodels, Seaborn, Plotly) · SQL · PostgreSQL · dbt · Tableau
+**Tools:** Python (pandas, statsmodels, seaborn) · SQL · PostgreSQL · dbt · Tableau
 
 ---
 
@@ -41,6 +41,7 @@ Cart abandonment analysis on real OTTO e-commerce data (12.9M sessions): funnel 
 | Supporting | Click-to-cart rate | Share of users who add something to the cart |
 | Supporting | Time to purchase | Time from first cart add to first order |
 | Supporting | Cart adds per user | How many times a user added something to the cart |
+| Supporting | Active days per user | On how many different days a user was active |
 | Supporting | Conversion rate by weekday and hour | Share of orders by time |
 | Supporting | Buyer type share | Share of users in each buyer type (browser, abandoner, quick / same-day / slow buyer) |
 
@@ -51,7 +52,7 @@ Cart abandonment analysis on real OTTO e-commerce data (12.9M sessions): funnel 
 | # | Question | KPI that answers it | Method |
 |---|---|---|---|
 | Q1 | How many customers do we lose, and how many orders could we win back? | Cart abandonment rate, order conversion rate, recoverable orders | Funnel, confidence interval, recovery scenarios (e.g. 5%, 10%, 20%) |
-| Q2 | Who should we contact? | Buyer type share, cart adds per user | Rule-based buyer types, behaviour comparison |
+| Q2 | Who should we contact? | Buyer type share, cart adds and active days per user | Rule-based buyer types, order rate by cart adds × active days |
 | Q3 | When should we contact them? | Time to purchase, conversion rate by weekday and hour | Time-to-purchase distribution, two-proportion z-test |
 
 ## 4. Data source
@@ -113,8 +114,9 @@ Kaggle API → raw JSONL → 1M-session sample → clean events → PostgreSQL �
 | Store | PostgreSQL | `events_clean.csv` | `otto.raw_events` table | PostgreSQL, schema `otto` |
 | Transform | dbt | `otto.raw_events` | `stg_events` → `prep_sessions` → `mart_sessions` | `dbt/` |
 | EDA | Python (`02b_eda.ipynb`) | `mart_sessions` | Missing values, summary statistics, group counts | `notebooks/` |
-| Analyze | Python (`03_cart_abandonment.ipynb`, `04_who_to_contact.ipynb`) | dbt marts | Tests and charts | `notebooks/`, `docs/figures/` |
-| Visualize | Tableau, Seaborn, Plotly | dbt marts | Dashboard and charts | `dashboard/` |
+| Analyze | Python (notebooks 03–05) | dbt marts | Tests and charts | `notebooks/`, `docs/figures/` |
+| Summarise | Python (`06_tableau_data.ipynb`) | dbt marts | Small summary tables for Tableau | `dashboard/data/` |
+| Visualize | Tableau | Summary tables | One-page dashboard | `dashboard/` |
 
 ### dbt models
 
@@ -197,6 +199,20 @@ otto-cart-recovery/
    ```
 
 ## 8. Findings
+
+Results from the 1M-user sample (August 2022).
+
+| Question | Finding |
+|---|---|
+| How many customers do we lose? | 57% of users who add to cart never order (95% CI 56.8%–57.1%). 70% of all users never add anything to the cart. |
+| Who should we contact? | 26,919 abandoners (17%) added 3+ items and came back on 4+ days. Users with this behaviour order 62% of the time, compared with 43% of all users with a cart. |
+| When should we contact them? | Most buyers order within an hour (median 14 minutes), but 19% come back after more than a day. Orders peak on Sunday and Monday evenings; weekend visitors order less often (10.8% vs. 13.3%, z-test p < 0.001). |
+| How many orders could we win back? | If a reminder brings back 10% of abandoners, the shop gets 13% more buyers: about 206,000 extra buyers in 4 weeks on the full data. |
+
+**Recommendation:** send a cart reminder about 1 hour after the cart add to abandoners with 3+ cart adds and 4+ active days, best on Sunday or Monday evening, and test it first with an A/B test.
+
+![Funnel](docs/figures/01_funnel.png)
+![Target group](docs/figures/05b_order_rate_by_carts_and_days.png)
 
 ## 9. Limitations
 
