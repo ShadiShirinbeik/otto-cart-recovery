@@ -1,0 +1,12 @@
+pandas
+pyarrow
+numpy
+matplotlib
+seaborn
+statsmodels
+sqlalchemy
+psycopg2-binary
+python-dotenv
+jupyter
+kaggle
+dbt-postgres

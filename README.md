@@ -45,7 +45,7 @@ Cart abandonment analysis on real OTTO e-commerce data (12.9M sessions): funnel 
 | Supporting | Conversion rate by weekday and hour | Share of orders by time |
 | Supporting | Buyer type share | Share of users in each buyer type (browser, abandoner, quick / same-day / slow buyer) |
 
-**Success** means a measured baseline for every KPI, a clear estimate of recoverable orders, and a reminder plan (who, when, test size) backed by statistical tests.
+**Success** means a measured baseline for every KPI, a clear estimate of recoverable orders, and a reminder plan (who and when) backed by statistical tests.
 
 ## 3. Business questions
 
@@ -115,8 +115,8 @@ Kaggle API → raw JSONL → 1M-session sample → clean events → PostgreSQL �
 | Transform | dbt | `otto.raw_events` | `stg_events` → `prep_sessions` → `mart_sessions` | `dbt/` |
 | EDA | Python (`02b_eda.ipynb`) | `mart_sessions` | Missing values, summary statistics, group counts | `notebooks/` |
 | Analyze | Python (notebooks 03–05) | dbt marts | Tests and charts | `notebooks/`, `docs/figures/` |
-| Summarise | Python (`06_tableau_data.ipynb`) | dbt marts | Small summary tables for Tableau | `dashboard/data/` |
-| Visualize | Tableau | Summary tables | One-page dashboard | `dashboard/` |
+| Summarise | Python (`06_tableau_data.ipynb`) | dbt marts | Two what-if tables for Tableau (`whatif_base.csv`, `whatif_curve.csv`) | `dashboard/data/` |
+| Visualize | Tableau | What-if tables | One-page what-if dashboard (`otto_cart_dashboard.twbx`) | `dashboard/` |
 
 ### dbt models
 
@@ -136,11 +136,12 @@ otto-cart-recovery/
 │   ├── raw/         # original Kaggle file
 │   └── processed/   # sample and clean data
 ├── notebooks/       # exploration and analysis
-├── src/             # Python scripts (sampling)
+├── src/             # Python scripts (sampling, chart style)
 ├── sql/             # SQL to create the raw table
 ├── dbt/             # dbt project
-├── dashboard/       # Tableau workbook and screenshots
-├── docs/            # presentation and extra documentation
+├── dashboard/       # Tableau workbook and its data
+├── docs/            # data dictionary and charts
+├── requirements.txt # Python packages
 └── README.md
 ```
 
@@ -156,7 +157,7 @@ otto-cart-recovery/
    ```
 2. Install the Python packages:
    ```bash
-   pip install pandas pyarrow seaborn plotly statsmodels jupyter kaggle dbt-postgres sqlalchemy psycopg2-binary python-dotenv
+   pip install -r requirements.txt
    ```
 3. Download the data with the Kaggle API (requires `kaggle.json` from your Kaggle account settings):
    ```bash
@@ -189,7 +190,7 @@ otto-cart-recovery/
    dbt run
    dbt test
    ```
-9. Create a `.env` file in the project folder with the same connection (not committed), then run notebook 02b (EDA) and notebooks 03–05. They download the dbt tables once and save the charts in `docs/figures/`:
+9. Create a `.env` file in the project folder with the same connection (not committed), then run notebook 02b (EDA) and notebooks 03–06. They download the dbt tables once, save the charts in `docs/figures/` and the dashboard data in `dashboard/data/`:
    ```
    POSTGRES_USER=YOUR_USER
    POSTGRES_PASS=YOUR_PASSWORD
@@ -197,22 +198,57 @@ otto-cart-recovery/
    POSTGRES_PORT=5432
    POSTGRES_DB=YOUR_DATABASE
    ```
+10. Open `dashboard/otto_cart_dashboard.twbx` in Tableau Desktop. The workbook holds its own copy of the two CSV files.
 
 ## 8. Findings
 
-Results from the 1M-user sample (August 2022).
+Results from the 1M-user sample (August 2022). Numbers for the full data are scaled up from the sample (×12.9).
 
-| Question | Finding |
-|---|---|
-| How many customers do we lose? | 57% of users who add to cart never order (95% CI 56.8%–57.1%). 70% of all users never add anything to the cart. |
-| Who should we contact? | 26,919 abandoners (17%) added 3+ items and came back on 4+ days. Users with this behaviour order 62% of the time, compared with 43% of all users with a cart. |
-| When should we contact them? | Most buyers order within an hour (median 14 minutes), but 19% come back after more than a day. Orders peak on Sunday and Monday evenings; weekend visitors order less often (10.8% vs. 13.3%, z-test p < 0.001). |
-| How many orders could we win back? | If a reminder brings back 10% of abandoners, the shop gets 13% more buyers: about 206,000 extra buyers in 4 weeks on the full data. |
+### Q1. How many customers do we lose?
 
-**Recommendation:** send a cart reminder about 1 hour after the cart add to abandoners with 3+ cart adds and 4+ active days, best on Sunday or Monday evening, and test it first with an A/B test.
+- 70% of users only browse. 29.5% add something to the cart, and 12.6% order.
+- **57% of users with a cart never order** (95% CI 56.8%–57.1%). That is 159,946 users in the sample, or about 2.1M on the full data.
 
 ![Funnel](docs/figures/01_funnel.png)
-![Target group](docs/figures/05b_order_rate_by_carts_and_days.png)
+
+### Q2. Who should we contact?
+
+- The number of cart adds matters most. Coming back on more days helps, mainly for users with 3+ cart adds.
+- The order rate goes from 31% (1 cart add, 1 day) up to 74% (5+ cart adds, 8+ days).
+- **Target group: 26,919 abandoners (17%) with 3+ cart adds and 4+ active days.** Their median is 5 cart adds and 6 active days, close to slow buyers (7 and 8).
+- Users with this behaviour order 62% of the time, compared with 43% of all users with a cart.
+
+![Order rate by cart adds and active days](docs/figures/05b_order_rate_by_carts_and_days.png)
+
+### Q3. When should we contact them?
+
+- **Most buyers decide fast:** median time from cart to order is 14 minutes. 68% order within 1 hour, but 19% come back after more than a day.
+- **Sunday and Monday are the strongest days.** Most orders come on Monday at 21:00.
+- Users who start on a weekend order less often (10.8% vs. 13.3% on weekdays, z-test p < 0.001).
+
+![Orders by day and hour](docs/figures/07_orders_by_day_and_hour.png)
+
+### How many buyers could we win back?
+
+| Abandoners who come back | Extra buyers (sample) | More buyers than today | Extra buyers (full data, 4 weeks) |
+|---|---|---|---|
+| 5% | 7,997 | +6% | ~103,000 |
+| 10% | 15,995 | +13% | ~206,000 |
+| 20% | 31,989 | +25% | ~413,000 |
+
+The target group alone gives about 35,000 extra buyers on the full data at a 10% recovery rate.
+
+### Dashboard
+
+A one-page what-if dashboard in Tableau ([`dashboard/otto_cart_dashboard.twbx`](dashboard/otto_cart_dashboard.twbx)). Choose a recovery rate from 1% to 30% with the slider. The dashboard shows the extra buyers, how many more buyers this is than today, and the extra buyers from the target group.
+
+![Dashboard](docs/figures/dashboard.png)
+
+### Recommendation
+
+1. **Who:** abandoners with 3+ cart adds and 4+ active days.
+2. **When:** about 1 hour after the cart add, when most fast buyers have already ordered. Sunday and Monday evenings are the best time.
+3. **Next step:** run an A/B test (reminder vs. no reminder) to measure the real recovery rate. The numbers above show the potential, not a proven effect.
 
 ## 9. Limitations
 
@@ -221,6 +257,7 @@ Results from the 1M-user sample (August 2022).
 - Only 4 weeks of history, so no seasonality or long-term behaviour.
 - A real person using two devices may appear as two sessions.
 - Cart abandonment is measured per user over 4 weeks, so it is not directly comparable with per-visit benchmarks.
+- The recovery rate is an assumption. Only an A/B test can measure it.
 
 ## 10. Acknowledgements
 

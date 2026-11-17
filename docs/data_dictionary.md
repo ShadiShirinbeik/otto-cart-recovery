@@ -63,7 +63,7 @@ Groups all events of a user into **one row per user**. It only counts actions an
 
 ## 5. dbt mart – `otto.mart_sessions` (main analysis table)
 
-One row per user (1,000,000 rows). All notebooks from 03 on and the Tableau story use this table.
+One row per user (1,000,000 rows). All notebooks from 03 on use this table, including the dashboard data (notebook 06).
 
 | Column | Type | Meaning | Empty when |
 |---|---|---|---|
@@ -100,4 +100,22 @@ One row per user (1,000,000 rows). All notebooks from 03 on and the Tableau stor
 | `late_cart` | Cart add on August 27–28 and no order (left out of the analysis) |
 | `other` | Order without a cart add in the data period (left out of the analysis) |
 
+## 6. Dashboard data – `dashboard/data/` (made by notebook 06)
 
+**`whatif_base.csv`** – one row with the base numbers
+
+| Column | Type | Description |
+|---|---|---|
+| `abandoners` | integer | Users with a cart add and no order |
+| `target_group` | integer | Abandoners with 3+ cart adds and 4+ active days |
+| `current_buyers` | integer | Users with at least one order |
+| `cart_users` | integer | Users with a cart add (without `late_cart` and `other`) |
+| `full_data_factor` | float | Full data users / sample users (12.9) |
+
+**`whatif_curve.csv`** – one row per recovery rate
+
+| Column | Type | Description |
+|---|---|---|
+| `recovery_rate` | float | Share of abandoners who come back, 0.01 to 0.30 |
+| `extra_buyers` | integer | Extra buyers in the sample |
+| `extra_buyers_full_data` | integer | Extra buyers scaled to the full data |
