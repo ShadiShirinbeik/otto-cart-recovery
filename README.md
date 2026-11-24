@@ -4,6 +4,8 @@ Cart abandonment analysis on real OTTO e-commerce data (12.9M sessions): funnel 
 
 **Tools:** Python (pandas, statsmodels, seaborn) · SQL · PostgreSQL · dbt · Tableau
 
+**Presentation:** [shadishirinbeik.github.io/otto-cart-recovery](https://shadishirinbeik.github.io/otto-cart-recovery/) (interactive, scroll through the slides)
+
 ---
 
 ## Contents
