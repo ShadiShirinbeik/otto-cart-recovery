@@ -204,31 +204,44 @@ otto-cart-recovery/
 
 ## 8. Findings
 
-Results from the 1M-user sample (August 2022). Numbers for the full data are scaled up from the sample (×12.9).
+Results from the 1M-user sample (August 2022). Numbers for the full data are scaled up from the sample (×12.9). All charts below come from the [interactive presentation](https://shadishirinbeik.github.io/otto-cart-recovery/), where you can hover every chart for exact numbers.
 
 ### Q1. How many customers do we lose?
 
-- 70% of users only browse. 29.5% add something to the cart, and 12.6% order.
+- 70% of users only browse. 29.5% add something to the cart, and **12.6% order** (conversion rate).
 - **57% of users with a cart never order** (95% CI 56.8%–57.1%). That is 159,946 users in the sample, or about 2.1M on the full data.
+- Most buyers order within the first hour, but a smaller group comes back hours or days later.
 
-![Funnel](docs/figures/01_funnel.png)
+<p>
+  <img src="docs/figures/web_01_funnel.png" alt="Shopping funnel" width="49%">
+  <img src="docs/figures/web_02_after_cart.png" alt="Users with a cart by when they ordered" width="49%">
+</p>
 
 ### Q2. Who should we contact?
 
 - The number of cart adds matters most. Coming back on more days helps, mainly for users with 3+ cart adds.
 - The order rate goes from 31% (1 cart add, 1 day) up to 74% (5+ cart adds, 8+ days).
-- **Target group: 26,919 abandoners (17%) with 3+ cart adds and 4+ active days.** Their median is 5 cart adds and 6 active days, close to slow buyers (7 and 8).
+- **Target group: 26,919 abandoners (17%) with 3+ cart adds and 4+ active days.** In the scatter plot they sit in the same area as slow buyers (who ordered after a day or more), not with the other abandoners.
 - Users with this behaviour order 62% of the time, compared with 43% of all users with a cart.
 
-![Order rate by cart adds and active days](docs/figures/05b_order_rate_by_carts_and_days.png)
+<p>
+  <img src="docs/figures/web_03_order_rate_heatmap.png" alt="Order rate by cart adds and active days" width="49%">
+  <img src="docs/figures/web_04_target_scatter.png" alt="Scatter plot of cart adds and active days" width="49%">
+</p>
 
 ### Q3. When should we contact them?
 
-- **Most buyers decide fast:** median time from cart to order is 14 minutes. 68% order within 1 hour, but 19% come back after more than a day.
-- **Sunday and Monday are the strongest days.** Most orders come on Monday at 21:00.
+- **Most buyers decide fast:** half order within 14 minutes, and 68% within 1 hour.
+- **Warm shoppers decide more slowly:** only 45% of buyers with 3+ cart adds and 4+ active days order within an hour, compared with about 80% of other buyers. So a reminder after about one hour reaches them while they are still deciding.
+- **Evenings are the busiest time.** Monday and Sunday evenings bring the most orders; the busiest hour is Monday at 21:00. Saturday is the quietest day.
 - Users who start on a weekend order less often (10.8% vs. 13.3% on weekdays, z-test p < 0.001).
 
-![Orders by day and hour](docs/figures/07_orders_by_day_and_hour.png)
+<p>
+  <img src="docs/figures/web_05_time_to_order.png" alt="Share of buyers who have ordered over time" width="49%">
+  <img src="docs/figures/web_07_orders_per_hour.png" alt="Orders per hour by day" width="49%">
+</p>
+
+![Orders by weekday and hour](docs/figures/web_06_orders_by_day_hour.png)
 
 ### How many buyers could we win back?
 
@@ -240,6 +253,8 @@ Results from the 1M-user sample (August 2022). Numbers for the full data are sca
 
 The target group alone gives about 35,000 extra buyers on the full data at a 10% recovery rate.
 
+![Extra buyers for each recovery rate](docs/figures/web_08_what_if.png)
+
 ### Dashboard
 
 A one-page what-if dashboard in Tableau ([`dashboard/otto_cart_dashboard.twbx`](dashboard/otto_cart_dashboard.twbx)). Choose a recovery rate from 1% to 30% with the slider. The dashboard shows the extra buyers, how many more buyers this is than today, and the extra buyers from the target group.
@@ -249,7 +264,7 @@ A one-page what-if dashboard in Tableau ([`dashboard/otto_cart_dashboard.twbx`](
 ### Recommendation
 
 1. **Who:** abandoners with 3+ cart adds and 4+ active days.
-2. **When:** about 1 hour after the cart add, when most fast buyers have already ordered. Sunday and Monday evenings are the best time.
+2. **When:** about 1 hour after the cart add, on any day, when most fast buyers have already ordered. A second reminder works best on Sunday or Monday evening.
 3. **Next step:** run an A/B test (reminder vs. no reminder) to measure the real recovery rate. The numbers above show the potential, not a proven effect.
 
 ## 9. Limitations
