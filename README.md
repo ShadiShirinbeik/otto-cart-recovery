@@ -241,7 +241,7 @@ Results from the 1M-user sample (August 2022). Numbers for the full data are sca
   <img src="docs/figures/web_07_orders_per_hour.png" alt="Orders per hour by day" width="49%">
 </p>
 
-![Orders by weekday and hour](docs/figures/web_06_orders_by_day_hour.png)
+<p align="center"><img src="docs/figures/web_06_orders_by_day_hour.png" alt="Orders by weekday and hour" width="60%"></p>
 
 ### How many buyers could we win back?
 
@@ -253,7 +253,7 @@ Results from the 1M-user sample (August 2022). Numbers for the full data are sca
 
 The target group alone gives about 35,000 extra buyers on the full data at a 10% recovery rate.
 
-![Extra buyers for each recovery rate](docs/figures/web_08_what_if.png)
+<p align="center"><img src="docs/figures/web_08_what_if.png" alt="Extra buyers for each recovery rate" width="60%"></p>
 
 ### Dashboard
 
