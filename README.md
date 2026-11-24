@@ -142,7 +142,7 @@ otto-cart-recovery/
 ├── sql/             # SQL to create the raw table
 ├── dbt/             # dbt project
 ├── dashboard/       # Tableau workbook and its data
-├── docs/            # data dictionary and charts
+├── docs/            # data dictionary, charts and the presentation (index.html)
 ├── requirements.txt # Python packages
 └── README.md
 ```
